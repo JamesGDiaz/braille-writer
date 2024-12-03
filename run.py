@@ -9,6 +9,13 @@ from glyph import make_svg_pages, mm_to_in
 def parse_args():
     parser = argparse.ArgumentParser(description="UTF-8 Text to Braille in SVG")
     parser.add_argument(
+        "-m","--mirror",
+        action='store_true',
+        help="Mirror SVG objects with respect to the center of the page",
+        default=False,
+        required=False
+    )
+    parser.add_argument(
         "-i",
         "--input",
         help="Input text file",
@@ -24,12 +31,15 @@ def parse_args():
         type=str,
         default="output",
     )
+
     args = vars(parser.parse_args())
 
     return args
 
 
-def create_svg_output(input_txt, output_name, output_directory):
+def create_svg_output(
+    input_txt: str, output_name: str, output_directory: os.PathLike, mirror_svg: bool
+):
     parsed_text = braille_parser(input_txt)
 
     margin_x = 20
@@ -45,8 +55,8 @@ def create_svg_output(input_txt, output_name, output_directory):
     pageHpx = math.ceil(pageH * dpi / mm_to_in)
 
     print(f"Page Width: {pageWpx}px ({pageW}mm)\nPage Height: {pageH}px ({pageH}mm)")
+    print(f"Total lines: {len(parsed_text)}")
     print(f"Max lines per page: {max_lines}")
-
     result = make_svg_pages(
         parsed_text,
         pageH=pageH,
@@ -54,20 +64,20 @@ def create_svg_output(input_txt, output_name, output_directory):
         interline=interline,
         margin_x=margin_x,
         margin_y=margin_y,
+        mirror=mirror_svg,
     )
     svg_content = list(reversed(result[0]))
     text_content = list(reversed(result[1]))
 
-
     print(f"Found {len(svg_content)} pages")
 
     # Write the SVG content to output.svg
+    print(f"Writing pages to {output_directory}")
     for i, page in enumerate(svg_content):
         n_page = i + 1
 
         path = os.path.join(output_directory, f"{output_name}_{n_page}.svg")
         with open(path, "w", encoding="utf-8") as f:
-            print(f"Writing to {path}")
             f.write(page)
 
     with open("output_templ.html", "r", encoding="utf-8") as html_cont:
@@ -75,7 +85,6 @@ def create_svg_output(input_txt, output_name, output_directory):
 
         path = os.path.join(output_directory, f"{output_name}.html")
         with open(path, "w", encoding="utf-8") as f:
-            print(f"Writing to {path}")
             html = html.replace("[[TITLE]]", output_name)
             html = html.replace("[[INPUT]]", input_txt.replace("\n", "<br/>"))
             html = html.replace(
@@ -118,4 +127,4 @@ if __name__ == "__main__":
     with open(args["input"], "r", encoding="utf-8") as f:
         text_content = f.read()
 
-    create_svg_output(text_content, args["output"], output_directory)
+    create_svg_output(text_content, args["output"], output_directory, mirror_svg=args['mirror'])

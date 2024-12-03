@@ -102,6 +102,7 @@ def make_svg_pages(
     margin_x=20,
     margin_y=20,
     page_number=1,
+    mirror=False,
 ):
     """
     Create the SVG content
@@ -113,12 +114,12 @@ def make_svg_pages(
     current_line = 0
     svg_lines = []
     text_lines = []
-    print(f"Total lines: {len(lines)}")
+
     for i, (braille_line, regular_text) in enumerate(lines):
         y_pos = margin_y + ((current_line) * interline)
 
         if y_pos >= pageH - margin_y:
-            print(f"Creating page break, remaining {len(lines[i:])}")
+            # print(f"Creating page break, remaining {len(lines[i:])}")
             s, t = make_svg_pages(
                 lines[i:],
                 interline=interline,
@@ -128,6 +129,7 @@ def make_svg_pages(
                 margin_x=margin_x,
                 margin_y=margin_y,
                 page_number=page_number + 1,
+                mirror=mirror,
             )
             svg_pages.append(s)
             text_pages.append(t)
@@ -137,13 +139,17 @@ def make_svg_pages(
             braille_line, pageW=pageW, margin_x=margin_x, interline=interline
         )
         svg_lines.append(
-            f"""<g transform="translate(0,{y_pos}) scale(1, 1)">{''.join(paths)}</g>"""
+            f"""<g transform="translate(0,{y_pos}) scale({1 if not mirror else -1}, 1)" """
+            f"""{"" if not mirror else f"transform-origin=\"50% 50%\""}>{''.join(paths)}"""
+            """</g>"""
         )
         text_lines.append(
-            f"""<text transform="translate({margin_x},{y_pos}) scale(1, 1)" font-size="5.5" font-family="Times New Roman">{regular_text}</text>"""
+            f"""<text transform="translate({margin_x},{y_pos}) scale({1 if not mirror else -1}, 1)" """
+            f""" font-size="5.5" font-family="Times New Roman" """
+            f""" {"" if not mirror else f"transform-origin=\"{(pageW-margin_x*2)/2} 0\""}>{regular_text}"""
+            """</text>"""
         )
         current_line += used_lines
-
     svg_content = f"""<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <svg
    xmlns="http://www.w3.org/2000/svg"
