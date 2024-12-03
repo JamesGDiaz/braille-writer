@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>[[TITLE]]</title>
+    <style>
+      body {
+        background-color: #f0f0f0; /* Light gray background */
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      .svg-container {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start; /* Center horizontally */
+        justify-content: space-around; /* Center vertically */
+        height: 100%; /* Full viewport height */
+        padding: 2rem 1rem;
+      }
+      .svg-content {
+        border: 1px solid #333; /* Slim, dark border */
+        padding: 0;
+        background-color: #fff; /* White background for SVG */
+      }
+      .svg-content.text {
+        border: 5px solid #333; /* Slim, dark border */
+        padding: 0;
+      }
+      .svg-content:not(:first-child) {
+        margin-top: 0.5rem;
+      }
+      .svg-info-container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start; /* Center horizontally */
+        justify-content: flex-start; /* Center vertically */
+        height: 100%; /* Full viewport height */
+        align-self: flex-start;
+        margin: 2rem;
+      }
+      .pages-container {
+        display: flex;
+        flex-direction: row;
+        align-items: center; /* Center horizontally */
+        justify-content: flex-start; /* Center vertically */
+        height: 100%; /* Full viewport height */
+        align-self: flex-start;
+      }
+      .svg-info {
+        margin-top: 20px;
+        color: #111;
+        font-size: 1rem;
+      }
+      .svg-info p {
+        margin: 0;
+      }
+      .svg-info > p:first-child {
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+      }
+      .input-text {
+        margin-top: 1rem;
+        border-top: 1px solid #333;
+      }
+      .saveButton {
+        margin-top: 20px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <div class="svg-info-container">
+        <!-- Save Button -->
+        <button class="btn saveButton" id="saveButtonBraille">
+          Save Braille as PDF
+        </button>
+        <button class="btn saveButton" id="saveButtonText">
+          Save Text as PDF
+        </button>
+        <div class="svg-info" id="svgInfo">
+          <!-- SVG information will be inserted here dynamically -->
+        </div>
+        <div>
+          <div style="display: block">Text input:</div>
+          <!--<div class="input-text">[[INPUT]]</div>-->
+        </div>
+      </div>
+    </div>
+    <div class="svg-container">
+      <div class="pages-container">
+        <div class="svg-elements">[[SVG_PAGES]]</div>
+        <div class="text-elements">[[TEXT_PAGES]]</div>
+      </div>
+    </div>
+
+    <!-- Include jsPDF library from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Include Canvg library from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/canvg@3.0.9/lib/umd.min.js"></script>
+
+    <script>
+      // Wait for the DOM to load
+      document.addEventListener("DOMContentLoaded", function () {
+        // Get the SVG element by its ID
+        var svgElement = document.getElementById("svg_page_1");
+
+        // Retrieve the SVG's width and height attributes
+        var svgWidth = svgElement.getAttribute("width");
+        var svgHeight = svgElement.getAttribute("height");
+
+        // Retrieve units from the width and height (assuming units are specified)
+        // If units are not specified, default to pixels
+        var widthMatch = svgWidth.match(/[\d.]+(\w+)?/);
+        var heightMatch = svgHeight.match(/[\d.]+(\w+)?/);
+        var widthValue = widthMatch ? widthMatch[0] : svgWidth;
+        var heightValue = heightMatch ? heightMatch[0] : svgHeight;
+        var widthUnits = widthMatch && widthMatch[1] ? widthMatch[1] : "px";
+        var heightUnits = heightMatch && heightMatch[1] ? heightMatch[1] : "px";
+
+        // Prepare the information text
+        var infoText = "<p>SVG Information:</p>";
+        infoText += "<p>Width: " + widthValue + widthUnits + "</p>";
+        infoText += "<p>Height: " + heightValue + heightUnits + "</p>";
+        infoText += "<p>Units: " + widthUnits + "</p>";
+
+        // Insert the information into the svg-info div
+        document.getElementById("svgInfo").innerHTML = infoText;
+
+        var svgWidth = svgElement.clientWidth;
+        console.log(svgWidth);
+        var svgHeight = svgElement.clientHeight;
+        // Retrieve units from the width and height (assuming units are specified)
+        // If units are not specified, default to pixels
+        var widthMatch = svgWidth.toString().match(/[\d.]+(\w+)?/);
+        var heightMatch = svgHeight.toString().match(/[\d.]+(\w+)?/);
+        var widthValue = widthMatch ? widthMatch[0] : svgWidth;
+        var heightValue = heightMatch ? heightMatch[0] : svgHeight;
+        // Convert pixels to points (1 px = 0.75 pt)
+        var svgWidthPt = widthValue * 0.75;
+        var svgHeightPt = heightValue * 0.75;
+
+        // Function to save SVG as PDF
+        document
+          .getElementById("saveButtonBraille")
+          .addEventListener("click", async function () {
+            var { jsPDF } = window.jspdf;
+
+            // Create a new jsPDF instance
+            var pdf = new jsPDF({
+              orientation: "portrait",
+              unit: "pt",
+              format: [svgWidthPt, svgHeightPt],
+            });
+
+            let elements = document.querySelectorAll(
+              ".svg-container .pages-container .svg-elements svg"
+            );
+
+            let pageCount = 0;
+            for (const svgElement of elements) {
+              console.log(pageCount++);
+              // Create a canvas element
+              var canvas = document.createElement("canvas");
+              canvas.width = svgWidth;
+              canvas.height = svgHeight;
+
+              var ctx = canvas.getContext("2d");
+              // Use Canvg to render SVG onto canvas
+              const renderer = await canvg.Canvg.from(
+                ctx,
+                new XMLSerializer().serializeToString(svgElement)
+              );
+
+              renderer.render();
+
+              // Get the data URL from the canvas
+              var imgData = canvas.toDataURL("image/png");
+
+              // Add the image to the PDF
+              if (pageCount > 1) {
+                pdf.addPage();
+              }
+              pdf.addImage(imgData, "PNG", 0, 0, svgWidthPt, svgHeightPt);
+            }
+
+            // Save the PDF
+            pdf.save(`${document.title}_braille.pdf`);
+          });
+
+        // Function to save SVG as PDF
+        document
+          .getElementById("saveButtonText")
+          .addEventListener("click", async function () {
+            var { jsPDF } = window.jspdf;
+
+            // Create a new jsPDF instance
+            var pdf = new jsPDF({
+              orientation: "portrait",
+              unit: "pt",
+              format: [svgWidthPt, svgHeightPt],
+            });
+
+            let elements = document.querySelectorAll(
+              ".svg-container .pages-container .text-elements svg"
+            );
+
+            let pageCount = 0;
+            for (const svgElement of elements) {
+              console.log(pageCount++);
+              // Create a canvas element
+              var canvas = document.createElement("canvas");
+              canvas.width = svgWidth;
+              canvas.height = svgHeight;
+
+              var ctx = canvas.getContext("2d");
+              // Use Canvg to render SVG onto canvas
+              const renderer = await canvg.Canvg.from(
+                ctx,
+                new XMLSerializer().serializeToString(svgElement)
+              );
+
+              renderer.render();
+
+              // Get the data URL from the canvas
+              var imgData = canvas.toDataURL("image/png");
+
+              // Add the image to the PDF
+
+              if (pageCount > 1) {
+                pdf.addPage();
+              }
+              pdf.addImage(imgData, "PNG", 0, 0, svgWidthPt, svgHeightPt);
+            }
+
+            // Save the PDF
+            pdf.save(`${document.title}_texto.pdf`);
+          });
+      });
+    </script>
+  </body>
+</html>

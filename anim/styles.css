@@ -1,0 +1,194 @@
+/* styles.css */
+
+/* Reset margins and paddings */
+body,
+html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  color: #fefefe;
+  background: black;
+}
+
+/* Container to hold the three sections */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.mesh-bg {
+  --_mesh-gradient-blur: 0px;
+  --_mesh-gradient-blend-mode: normal;
+
+  background: radial-gradient(at 78% 28%, #eb0989 0px, transparent 50%),
+    radial-gradient(at 3% 43%, #eb0918 0px, transparent 50%),
+    radial-gradient(at 38% 16%, #eb6b09 0px, transparent 50%),
+    radial-gradient(at 100% 2%, #09eb6b 0px, transparent 50%),
+    radial-gradient(at 98% 48%, #0989eb 0px, transparent 50%) #010101;
+  mix-blend-mode: var(--_mesh-gradient-blend-mode);
+  filter: blur(var(--_mesh-gradient-blur));
+}
+
+/* Each section occupies one-third of the screen */
+.section {
+  width: 100%;
+  height: 50%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  position: relative;
+  opacity: 0; /* Hidden initially */
+  font-family: sans-serif;
+  overflow: hidden;
+  white-space: break-spaces;
+  text-overflow: clip;
+
+  mask: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 1) 0,
+      rgba(0, 0, 0, 1) 55%,
+      rgba(0, 0, 0, 0) 95%,
+      rgba(0, 0, 0, 0) 0
+    )
+    100% 50% / 100% 100% repeat-x;
+}
+
+/* Fade-in animations with different delays */
+.section.fade-in {
+  animation: jiggle 10s infinite alternate, fadeIn 1s forwards;
+}
+
+.section.fade-in-delayed {
+  animation: jiggle 10s infinite alternate, fadeIn 0.5s forwards 0.2s;
+}
+
+.section.fade-in-more-delayed {
+  animation: jiggle 10s infinite alternate, fadeIn 2.5s forwards 1.5s;
+}
+
+.springFadeOut {
+  animation: springFadeOut 1.5s;
+}
+
+#anim-container:not(.hidden) {
+  //opacity: 0;
+  animation: fadeIn 2s;
+  animation-iteration-count: 1;
+}
+
+@keyframes springFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(3rem);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-2000px);
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Vertical movement animation */
+.section.move-motion {
+  animation: jiggle 5s infinite alternate;
+}
+
+@keyframes jiggle {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(-4px, -20px);
+  }
+}
+
+/*
+// Edge fading effect
+.section::before,
+.section::after {
+  content: "";
+  position: absolute;
+  width: 50px;
+  height: 100%;
+  top: 0;
+  z-index: 1;
+}
+
+.section::before {
+  left: 0;
+  background: linear-gradient(to right, white, transparent);
+}
+
+.section::after {
+  right: 0;
+  background: linear-gradient(to left, white, transparent);
+}
+*/
+
+/* Text styling */
+.section p {
+  font-size: 2em;
+  text-align: center;
+  padding: 0 50px;
+  z-index: 2;
+}
+
+.hidden {
+  display: none;
+}
+
+/* CSS */
+.button-76 {
+  background-color: #cf245f;
+  background-image: linear-gradient(to bottom right, #fcd34d, #ef4444, #ec4899);
+  border: 0;
+  border-radius: 0.25rem;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  font-family: ui-sans-serif, system-ui, -apple-system, system-ui, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-size: 1.125rem; /* 18px */
+  font-weight: 600;
+  line-height: 1.75rem; /* 28px */
+  padding: 1rem 1.25rem;
+  text-align: center;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.button-76:hover {
+  box-shadow: none;
+}
+
+@media (min-width: 1024px) {
+  .button-76 {
+    font-size: 1.5rem; /* 24px */
+    padding: 1rem 1.5rem;
+    line-height: 2rem; /* 32px */
+  }
+}
